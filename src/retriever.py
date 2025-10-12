@@ -14,7 +14,9 @@ def get_retriever():
         raise FileNotFoundError(f"No vector database found at {CHROMA_DIR}. Please run ingest.py first.")
 
     print(f"🔹 Loading Chroma DB from: {CHROMA_DIR}")
-    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    # embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2",
+                                       cache_folder=cache_dir)
     vectordb = Chroma(persist_directory=CHROMA_DIR, embedding_function=embeddings)
     retriever = vectordb.as_retriever(search_kwargs={"k": 3})
     return retriever
