@@ -6,7 +6,8 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 
 load_dotenv()
 
-CHROMA_DIR = os.getenv("INDICES_DIR", "./indices")  # You can point to ./data/chroma if you used that earlier
+CHROMA_DIR = os.getenv("INDICES_DIR", "./indices") # You can point to ./data/chroma if you used that earlier
+cache_dir = os.path.join(BASE_DIR, "models")
 
 def get_retriever():
     """Load Chroma vector store and return retriever."""
