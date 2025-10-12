@@ -1,0 +1,24 @@
+# core
+langchain
+langchain-community
+langchain-core
+pydantic
+
+# embeddings & hub
+sentence-transformers
+huggingface_hub
+
+# vector DB
+
+chromadb
+
+# model + misc
+transformers
+mistralai
+langchain-mistralai
+sentencepiece
+cohere
+# app + env
+streamlit
+python-dotenv
+
