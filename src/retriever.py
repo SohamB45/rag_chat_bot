@@ -6,6 +6,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 
 load_dotenv()
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHROMA_DIR = os.getenv("INDICES_DIR", "./indices") # You can point to ./data/chroma if you used that earlier
 cache_dir = os.path.join(BASE_DIR, "models")
 
