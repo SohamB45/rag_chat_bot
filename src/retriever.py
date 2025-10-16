@@ -64,3 +64,18 @@ def retrieve_documents(query, k=3):
         # langchain Document has .page_content and .metadata
         docs.append({"text": getattr(d, "page_content", str(d)), "metadata": getattr(d, "metadata", {})})
     return docs
+
+# --------------------------------------------
+# Backwards-compatible aliases
+# --------------------------------------------
+
+def get_retriever(k=3):
+    """Alias for load_retriever (for older imports)."""
+    return load_retriever(k=k)
+
+
+def get_relevant_documents(query, k=3):
+    """Convenience wrapper for retrieving relevant documents directly."""
+    r = load_retriever(k=k)
+    return r.get_relevant_documents(query)
+
