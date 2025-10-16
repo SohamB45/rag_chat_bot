@@ -273,7 +273,6 @@
 #                 st.divider()
 
 
-
 import os
 import sqlite3
 import streamlit as st
@@ -284,28 +283,31 @@ load_dotenv()
 
 # Robust imports
 try:
-    from src.generator import generate_answer, load_embedding_model
+    from generator import generate_answer
+    from retriever import load_retriever
     from src.ingest import create_chroma_index
-    
 except Exception:
-    from generator import generate_answer, load_embedding_model
+    # fallback if running from repo root (local)
+    from generator import generate_answer
+    from retriever import load_retriever
     from ingest import create_chroma_index
-    
 
 # --------------------------
-# Startup: preload models & indices
+# Startup: preload retriever (Chroma + embeddings)
 # --------------------------
 REPO_ROOT = os.environ.get("RENDER_REPO_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MODEL_CACHE = os.path.join(REPO_ROOT, "models")
 INDICES_PATH = os.path.join(REPO_ROOT, "indices")
 
-st.write("⏳ Startup: loading embedding model and indices...")
+st.write("⏳ Startup: loading retriever (Chroma + embeddings)...")
 try:
-    load_embedding_model(cache_folder=MODEL_CACHE)
+    # This will raise a FileNotFoundError if indices are missing — we catch and show friendly message below
+    load_retriever()
+    st.write("✅ Retriever loaded.")
+except FileNotFoundError as e:
+    st.error(f"❌ Indices not found: {e}. Run ingest.py to create the indices (or set INDICES_DIR).")
 except Exception as e:
-    st.error(f"⚠️ Error loading embedding model: {e}")
-
-
+    st.error(f"⚠️ Error loading retriever: {e}")
 
 # --------------------------
 # Data directories & DB
