@@ -310,44 +310,41 @@
 #     print(out["answer"])
 
 
-# src/generator.py
 import os
-from threading import Lock
 import logging
-from sentence_transformers import SentenceTransformer
-import numpy as np
-from retriever import retrieve_documents 
+from retriever import load_retriever, retrieve_documents
 
 _logger = logging.getLogger(__name__)
-_embedding_model = None
-_load_lock = Lock()
 
-def load_embedding_model(cache_folder=None):
-    global _embedding_model
-    if _embedding_model is not None:
-        return _embedding_model
-    with _load_lock:
-        if _embedding_model is not None:
-            return _embedding_model
-        repo_root = os.environ.get("RENDER_REPO_DIR", os.path.dirname(os.path.dirname(__file__)))
-        cache_folder = cache_folder or os.path.join(repo_root, "models")
-        _logger.info(f"Loading embedding model from cache_folder={cache_folder}")
-        _embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2', cache_folder=cache_folder)
-        _logger.info("Embedding model loaded.")
-    return _embedding_model
+# Optionally preload retriever at import time (safe because load_retriever is idempotent)
+def preload(k=3):
+    try:
+        load_retriever(k=k)
+    except Exception as e:
+        _logger.warning("Preload retriever failed: %s", e)
 
-# Example simple generate_answer that uses embeddings + your retriever
-def generate_answer(question, user_type="Windows"):
-    if _embedding_model is None:
-        raise RuntimeError("Embedding model not loaded. Call load_embedding_model() first.")
+# Call once on import to warm up (you can also call from app.startup)
+preload()
 
-    # 1️⃣ Get embedding for question
-    q_emb = _embedding_model.encode([question], convert_to_numpy=True, show_progress_bar=False)[0]
+def generate_answer(question, user_type="Windows", top_k=3):
+    """
+    Returns: {"answer": "<text>", "sources": [ {text, metadata}, ... ]}
+    Uses the Chroma retriever to fetch top docs and composes a simple answer.
+    You can replace the composition step with an LLM call if desired.
+    """
+    try:
+        docs = retrieve_documents(question, k=top_k)
+    except FileNotFoundError as e:
+        # No indices found
+        return {"answer": "Knowledge base not found. Please run ingest to create indices.", "sources": []}
+    except Exception as e:
+        _logger.exception("Retrieval failed")
+        return {"answer": f"Retrieval error: {e}", "sources": []}
 
-    # 2️⃣ Query your retriever for relevant docs
-    docs = retrieve_documents(q_emb, user_type=user_type, top_k=3)  # returns a list of dicts
+    if not docs:
+        return {"answer": "I couldn't find an answer in the knowledge base.", "sources": []}
 
-    # 3️⃣ Generate answer (simple example: concatenate doc texts)
-    answer_text = " ".join([doc["text"] for doc in docs])
-
+    # Simple composition: join top docs (you can do smarter summarization with an LLM)
+    answer_text = "\n\n".join([d["text"] for d in docs])
     return {"answer": answer_text, "sources": docs}
+
