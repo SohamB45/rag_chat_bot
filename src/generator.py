@@ -316,6 +316,7 @@ from threading import Lock
 import logging
 from sentence_transformers import SentenceTransformer
 import numpy as np
+from retriever import retrieve_documents 
 
 _logger = logging.getLogger(__name__)
 _embedding_model = None
@@ -337,15 +338,16 @@ def load_embedding_model(cache_folder=None):
 
 # Example simple generate_answer that uses embeddings + your retriever
 def generate_answer(question, user_type="Windows"):
-    """
-    Should return a dict like {"answer": "...", "sources":[...]}
-    Replace the retrieval/generation logic with your app's logic.
-    """
     if _embedding_model is None:
-        raise RuntimeError("Embedding model not loaded. Call load_embedding_model() at startup.")
-    # get embedding for question
+        raise RuntimeError("Embedding model not loaded. Call load_embedding_model() first.")
+
+    # 1️⃣ Get embedding for question
     q_emb = _embedding_model.encode([question], convert_to_numpy=True, show_progress_bar=False)[0]
-    # TODO: call your retriever to get docs using q_emb
-    # For now return a placeholder answer
-    answer = f"(demo) Received: {question} (user_type={user_type})"
-    return {"answer": answer, "embedding_shape": q_emb.shape}
+
+    # 2️⃣ Query your retriever for relevant docs
+    docs = retrieve_documents(q_emb, user_type=user_type, top_k=3)  # returns a list of dicts
+
+    # 3️⃣ Generate answer (simple example: concatenate doc texts)
+    answer_text = " ".join([doc["text"] for doc in docs])
+
+    return {"answer": answer_text, "sources": docs}
