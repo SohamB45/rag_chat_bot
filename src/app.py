@@ -286,11 +286,11 @@ load_dotenv()
 try:
     from src.generator import generate_answer, load_embedding_model
     from src.ingest import create_chroma_index
-    from src.retriever import load_indices
+    
 except Exception:
     from generator import generate_answer, load_embedding_model
     from ingest import create_chroma_index
-    from retriever import load_indices
+    
 
 # --------------------------
 # Startup: preload models & indices
