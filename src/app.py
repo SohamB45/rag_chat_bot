@@ -305,12 +305,7 @@ try:
 except Exception as e:
     st.error(f"⚠️ Error loading embedding model: {e}")
 
-if load_indices:
-    try:
-        load_indices(INDICES_PATH)
-    except Exception as e:
-        st.warning(f"⚠️ Warning: load_indices failed: {e}")
-st.write("✅ Startup loads complete.")
+
 
 # --------------------------
 # Data directories & DB
