@@ -113,10 +113,7 @@ def _init_chroma():
     return
 
 def load_retriever(k=3):
-    """
-    Loads (and caches) sentence-transformer model + chroma collection.
-    Returns a lightweight object with `get_relevant_documents(query)` method.
-    """
+
     global _embedding_model
     with _lock:
         if _collection is None:
